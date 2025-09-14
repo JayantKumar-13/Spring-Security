@@ -1,6 +1,7 @@
 package com.Security_demo.SpringSecdemo.config;
 
 import com.Security_demo.SpringSecdemo.Filters.JwtAuthFilter;
+import com.Security_demo.SpringSecdemo.entities.enums.Role;
 import com.Security_demo.SpringSecdemo.handlers.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,12 +23,18 @@ public class WebSecurityConfig {
 
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
+    private static final String[] PUBLIC_URLS = {
+          "/auth/signup", "/auth/login","/home.html"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // disable CSRF once
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/signup", "/auth/login","/home.html").permitAll()
+                        .requestMatchers(PUBLIC_URLS).permitAll()
+                        .requestMatchers(HttpMethod.POST , "/posts/**").hasRole(Role.ADMIN.name()) // only admin can create, update or delete the posts
+                        .requestMatchers(HttpMethod.GET , "/posts/**").permitAll() // anyone can see the posts
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

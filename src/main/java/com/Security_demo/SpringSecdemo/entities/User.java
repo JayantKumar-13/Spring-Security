@@ -1,5 +1,6 @@
 package com.Security_demo.SpringSecdemo.entities;
 
+import com.Security_demo.SpringSecdemo.entities.enums.Permission;
 import com.Security_demo.SpringSecdemo.entities.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,12 +35,23 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)        // if this is not added , it will store the index of the enum
     private Set<Role> roles;
 
+    @ElementCollection(fetch = FetchType.EAGER)    // to fetch the roles eagerly
+    @Enumerated(EnumType.STRING)        // if this is not added , it will store the index of the enum
+    private Set<Permission> permissions;
+
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
+        Set<SimpleGrantedAuthority> authorities = roles.stream()
         .map(role -> new SimpleGrantedAuthority("ROLE_"+role.name()))
         .collect(Collectors.toSet());
+        
+        permissions.forEach(
+            permission -> authorities.add(new SimpleGrantedAuthority(permission.name()))
+        );
+
+        return authorities;
     }
 
     @Override
